@@ -13,7 +13,7 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".selectCheckbox", function ()  {
-        // Перевірте, чи ні один чекбокс не відзначено, і зніміть галочку з загального чекбокса "Вибрати всі"
+
         if ($(".selectCheckbox:checked").length === 0) {
             $("#selectAll").prop("checked", false);
         } else if ($(".selectCheckbox:checked").length === $(".selectCheckbox").length) {
@@ -250,7 +250,7 @@ $(document).ready(function () {
         // Перевірка на пустоту полів
         if (firstName === '' || lastName === '' || role === '') {
             alert("Будь ласка, заповніть всі поля.");
-            return; // Вихід з функції, якщо поля порожні
+            return; 
         }
         var nameSurnamePattern = /^[A-Za-zА-Яа-яЁёІі0-9\s]+$/;
         if (!nameSurnamePattern.test(firstName) || !nameSurnamePattern.test(lastName)) {
