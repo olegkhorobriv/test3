@@ -6,19 +6,21 @@ $(document).ready(function () {
             $(".toggle-indicator").removeClass("active");
         }
     });
-    $("#selectAll").change(function () {
-        $(".selectCheckbox").prop("checked", this.checked);
+    $(document).on("click", "#selectAll", function ()  {
+        var isChecked = this.checked;
+        $(".selectCheckbox").prop("checked", isChecked);
         $(".rowCheckbox").prop("checked", isChecked);
     });
-    $(".selectCheckbox").change(function () {
-        if (!this.checked) {
+
+    $(document).on("click", ".selectCheckbox", function ()  {
+        // Перевірте, чи ні один чекбокс не відзначено, і зніміть галочку з загального чекбокса "Вибрати всі"
+        if ($(".selectCheckbox:checked").length === 0) {
             $("#selectAll").prop("checked", false);
-        } else {
-            if ($(".selectCheckbox:checked").length === $(".selectCheckbox").length) {
-                $("#selectAll").prop("checked", true);
-            }
+        } else if ($(".selectCheckbox:checked").length === $(".selectCheckbox").length) {
+            $("#selectAll").prop("checked", true);
         }
     });
+
     $(document).on("click", "#addBtnTop, #addBtnBottom, .editBtn", function () {
 
         var fullName = $(this).closest("tr").find("td:eq(1)").text();
@@ -39,6 +41,7 @@ $(document).ready(function () {
         $("#addEditModal").modal("show");
     });
     $("#okBtnTop").click(function () {
+
         if ($("#actionSelectTop").val() === "") {
             $("#warningModal").modal("show");
         } else {
@@ -47,33 +50,28 @@ $(document).ready(function () {
 
 
             if (selectedAction === "setActive") {
-                // Виконати дію "Set active"
+                var selectedIds = [];
+
+                $(".rowCheckbox:checked").each(function () {
+                    var row = $(this).closest("tr");
+                    var id = row.data("id");
+                    selectedIds.push(id);
+                });
+
                 $.ajax({
                     url: "active.php",
                     method: "POST",
                     data: {
-                        selectedAction: selectedAction
+                        selectedIds: selectedIds
                     },
                     success: function (response) {
-                        $('#data-table').html(response);
-                    }
-                });
-            } else if (selectedAction === "setNotActive") {
-                // Виконати дію "Set not active"
 
-                $.ajax({
-                    url: "not_active.php",
-                    method: "POST",
-                    data: {
-                        selectedAction: selectedAction
-                    },
-                    success: function (response) {
-                        $('#data-table').html(response);
+                        updateTable();
                     }
                 });
-            } else if (selectedAction === "delete") {
-                $("#confirmDeleteModal").modal("show");
-                // Виконати дію "Delete"
+                $("#selectAll").prop("checked", false);
+            } else if (selectedAction === "setNotActive") {
+
 
                 var selectedIds = [];
 
@@ -82,6 +80,29 @@ $(document).ready(function () {
                     var id = row.data("id");
                     selectedIds.push(id);
                 });
+
+                $.ajax({
+                    url: "not_active.php",
+                    method: "POST",
+                    data: {
+                        selectedIds: selectedIds
+                    },
+                    success: function (response) {
+
+                        updateTable();
+                    }
+                });
+                $("#selectAll").prop("checked", false);
+            } else if (selectedAction === "delete") {
+                $("#confirmDeleteModal").modal("show");
+                var selectedIds = [];
+
+                $(".rowCheckbox:checked").each(function () {
+                    var row = $(this).closest("tr");
+                    var id = row.data("id");
+                    selectedIds.push(id);
+                });
+
                 $("#deleteConfirmedBtn").off("click").on("click", function () {
 
                     $.ajax({
@@ -98,6 +119,7 @@ $(document).ready(function () {
 
                     $("#confirmDeleteModal").modal("hide");
                 });
+                $("#selectAll").prop("checked", false);
             }
         }
     });
@@ -110,32 +132,29 @@ $(document).ready(function () {
 
 
             if (selectedActionBottom === "setActive") {
+                var selectedIds = [];
+
+                $(".rowCheckbox:checked").each(function () {
+                    var row = $(this).closest("tr");
+                    var id = row.data("id");
+                    selectedIds.push(id);
+                });
 
                 $.ajax({
                     url: "active.php",
                     method: "POST",
                     data: {
-                        selectedAction: selectedActionBottom
+                        selectedIds: selectedIds
                     },
                     success: function (response) {
-                        $('#data-table').html(response);
+
+                        updateTable();
                     }
                 });
+
+                $("#selectAll").prop("checked", false);
             } else if (selectedActionBottom === "setNotActive") {
 
-                $.ajax({
-                    url: "not_active.php",
-                    method: "POST",
-                    data: {
-                        selectedAction: selectedActionBottom
-                    },
-                    success: function (response) {
-                        $('#data-table').html(response);
-                    }
-                });
-            } else if (selectedActionBottom === "delete") {
-                $("#confirmDeleteModal").modal("show");
-                // Виконати дію "Delete"
 
                 var selectedIds = [];
 
@@ -144,6 +163,29 @@ $(document).ready(function () {
                     var id = row.data("id");
                     selectedIds.push(id);
                 });
+
+                    $.ajax({
+                        url: "not_active.php",
+                        method: "POST",
+                        data: {
+                            selectedIds: selectedIds
+                        },
+                        success: function (response) {
+
+                            updateTable();
+                        }
+                    });
+                $("#selectAll").prop("checked", false);
+            } else if (selectedActionBottom === "delete") {
+                $("#confirmDeleteModal").modal("show");
+                var selectedIds = [];
+
+                $(".rowCheckbox:checked").each(function () {
+                    var row = $(this).closest("tr");
+                    var id = row.data("id");
+                    selectedIds.push(id);
+                });
+
                 $("#deleteConfirmedBtn").off("click").on("click", function () {
 
                     $.ajax({
@@ -160,6 +202,7 @@ $(document).ready(function () {
 
                     $("#confirmDeleteModal").modal("hide");
                 });
+                $("#selectAll").prop("checked", false);
             }
 
         }
@@ -205,7 +248,7 @@ $(document).ready(function () {
         var role = $("#role").val();
 
         // Перевірка на пустоту полів
-        if (firstName === '' || lastName === '') {
+        if (firstName === '' || lastName === '' || role === '') {
             alert("Будь ласка, заповніть всі поля.");
             return; // Вихід з функції, якщо поля порожні
         }
